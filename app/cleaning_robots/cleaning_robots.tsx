@@ -42,26 +42,19 @@ const RobotController: React.FC = () => {
     });
 
     const batteryCost = { pequeno: 5, médio: 10, grande: 15 };
-    let unusedRooms = rooms.filter((room) => {
-      const neededBattery = batteryCost[room.size];
-      return (
-        !robots.some((robot) => robot.room === room.name) &&
-        robotToClean.batteryLevel >= neededBattery
-      );
-    });
+    let unusedRooms = rooms
+      .filter((room) => {
+        const neededBattery = batteryCost[room.size];
+        return (
+          !robots.some((robot) => robot.room === room.name) &&
+          robotToClean.batteryLevel >= neededBattery
+        );
+      })
+      .sort((a, b) => b.dirtLevel - a.dirtLevel);
 
     if (unusedRooms.length === 0) return;
 
-    // Sort by dirt level, then shuffle if dirt levels are equal
-    unusedRooms.sort((a, b) => b.dirtLevel - a.dirtLevel);
-    if (
-      unusedRooms[0].dirtLevel === unusedRooms[unusedRooms.length - 1].dirtLevel
-    ) {
-      unusedRooms = unusedRooms.sort(() => Math.random() - 0.5); // Shuffle randomly
-    }
-
-    const roomToClean = unusedRooms[0]; // Select the room
-
+    const roomToClean = unusedRooms[0];
     handleCleaning(robotToClean.id, roomToClean.name, roomToClean.size);
   };
 
@@ -121,6 +114,15 @@ const RobotController: React.FC = () => {
     );
   };
 
+  const randomizeDirt = () => {
+    setRooms((prevRooms) =>
+      prevRooms.map((room) => ({
+        ...room,
+        dirtLevel: Math.floor(Math.random() * 100), // Randomize dirt level between 0 and 100
+      }))
+    );
+  };
+
   useEffect(() => {
     return () => {
       Object.values(cleaningTimers.current).forEach(clearTimeout);
@@ -137,7 +139,12 @@ const RobotController: React.FC = () => {
             style={{
               marginBottom: "20px",
               padding: "10px",
-              border: "1px solid black",
+              border: `3px solid ${
+                robot.status === "cleaning" ? "#f44336" : "#4CAF50"
+              }`, // Red when cleaning, green when waiting
+              borderRadius: "5px",
+              boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+              position: "relative",
             }}
           >
             <p>
@@ -145,12 +152,47 @@ const RobotController: React.FC = () => {
               %, Status: {robot.status}, Uses: {robot.usageCount}, Cleaning:{" "}
               {robot.room ?? "None"}
             </p>
-            <progress value={robot.batteryLevel} max="100"></progress>
+            <progress
+              value={robot.batteryLevel}
+              max="100"
+              style={{ width: "100%" }}
+            ></progress>
+            {robot.status === "cleaning" && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: "20px",
+                  height: "20px",
+                  border: "3px solid #f3f3f3", // Light grey for the spinner track
+                  borderTop: "3px solid #3498db", // Blue for the spinner itself
+                  borderRadius: "50%",
+                  animation: "spin 2s linear infinite",
+                }}
+              ></div>
+            )}
             <button
               onClick={() => handleRecharge(robot.id)}
               disabled={
                 robot.status === "cleaning" || robot.batteryLevel >= 100
               }
+              style={{
+                cursor: "pointer",
+                transition: "background-color 0.3s ease",
+                padding: "10px 20px",
+                fontSize: "16px",
+                backgroundColor:
+                  robot.status === "cleaning" || robot.batteryLevel >= 100
+                    ? "#ccc"
+                    : "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                marginTop: "10px",
+              }}
             >
               Recharge
             </button>
@@ -185,12 +227,41 @@ const RobotController: React.FC = () => {
           transition: "transform 0.3s ease",
           padding: "10px 20px",
           fontSize: "16px",
+          backgroundColor: "#4CAF50", // Green background
+          color: "white", // White text
+          border: "none",
+          borderRadius: "5px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          margin: "10px",
+          outline: "none",
         }}
         onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
         onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
         onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
       >
         Start Cleaning (Auto Select)
+      </button>
+
+      <button
+        onClick={randomizeDirt}
+        style={{
+          cursor: "pointer",
+          transition: "transform 0.3s ease",
+          padding: "10px 20px",
+          fontSize: "16px",
+          backgroundColor: "#f44336", // Red background
+          color: "white", // White text
+          border: "none",
+          borderRadius: "5px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          margin: "10px",
+          outline: "none",
+        }}
+        onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+        onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+        onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+      >
+        Randomize Dirt
       </button>
     </div>
   );

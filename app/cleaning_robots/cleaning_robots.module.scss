@@ -1,3 +1,7 @@
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
 .cleaning-robots {
     /* self config */
     flex-grow: 1;
@@ -6,4 +10,16 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    .spinner {
+        position: absolute; // Ensures it is properly positioned
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%); // Centers the spinner
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3; // Light grey for the spinner track
+        border-top: 3px solid #3498db; // Blue for the spinner itself
+        border-radius: 50%;
+        animation: spin 2s linear infinite;
+    }
 }
