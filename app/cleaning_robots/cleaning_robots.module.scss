@@ -1,0 +1,9 @@
+.cleaning-robots {
+    /* self config */
+    flex-grow: 1;
+    width: 100%;
+    /* children config */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
